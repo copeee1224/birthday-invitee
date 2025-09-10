@@ -102,8 +102,8 @@
         <div id="timeline" class="timeline"></div>
 
         <div class="btns" style="margin-top:16px">
-          <a id="icsBtn" class="linkbtn" download>Add to Calendar (.ics)</a>
-          
+          <!-- Updated Calendar Button -->
+          <a id="icsBtn" class="linkbtn" href="awan_birthday_invite.ics" download>➕ Add to Calendar</a>
         </div>
 
         <p class="footer muted" id="footerMsg"></p>
@@ -121,12 +121,11 @@
       partnerName: "Aqib Sayang",
       eventTitle: "Birthday Date",
       dateISO: "2025-09-11T19:00:00+08:00",
-      durationMinutes: 240,
+      durationMinutes: 1380, // until 12 Sept 4:00 PM
       venues: [
         { name: "Zoo Negara", address: "Jalan Taman Zooview, Taman Zooview, 68000 Ampang, Selangor", link: "https://maps.google.com/?q=Zoo Negara" },
-        { name: "Gift Opening Time!!!", address: "In your car  ;) or anywhere you would prefer"},
-        { name: "Birthday Lunch", address: "Bbq town @ Setapak Central", link: "https://maps.app.goo.gl/7hzcTTLHGsFro8eq9" }
-        
+        { name: "Birthday Lunch", address: "Bbq town @ Setapak Central", link: "https://maps.app.goo.gl/7hzcTTLHGsFro8eq9" },
+        { name: "Gift Opening Time!!!", address: "In your car  ;) or anywhere you would prefer"}
       ],
       dressCode: "Smart casual ! u pakai apa pun hensem ;)",
       note: "I'll make sure you will enjoy them and remember to bring your smile 💖",
@@ -141,27 +140,6 @@
     const $ = sel => document.querySelector(sel);
     const fmtDateLong = (d)=> d.toLocaleString(undefined, {weekday:'long', year:'numeric', month:'long', day:'numeric'});
     const fmtTime = (d)=> d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
-
-    function toUTCString(dt){
-      const d = new Date(dt);
-      const pad = n=> String(n).padStart(2,'0');
-      return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
-    }
-
-    function buildICS({title,startISO,durationMin,location,description}){
-      const dtStartUTC = toUTCString(startISO);
-      const end = new Date(new Date(startISO).getTime() + durationMin*60000);
-      const dtEndUTC = toUTCString(end.toISOString());
-      const uid = `${Date.now()}@birthday.invite`;
-      return `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Cute Invite//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nBEGIN:VEVENT\nUID:${uid}\nSUMMARY:${title}\nDTSTAMP:${dtStartUTC}\nDTSTART:${dtStartUTC}\nDTEND:${dtEndUTC}\nLOCATION:${location}\nDESCRIPTION:${description}\nEND:VEVENT\nEND:VCALENDAR`;
-    }
-
-    function makeDownload(data, filename){
-      const blob = new Blob([data], {type:'text/calendar'});
-      const url = URL.createObjectURL(blob);
-      const a = $('#icsBtn');
-      a.href = url; a.download = filename;
-    }
 
     function spawnHearts(count=20){
       const container = document.getElementById("hearts");
@@ -229,15 +207,6 @@
       const tl = $('#timeline');
       tl.innerHTML = CONFIG.plan.map(s=>`<div class="step"><time>${s.time}</time><strong>${s.title}</strong><div class="muted">${s.desc}</div></div>`).join('');
 
-      const ics = buildICS({
-        title: `${CONFIG.eventTitle} with ${CONFIG.yourName}`,
-        startISO: CONFIG.dateISO,
-        durationMin: CONFIG.durationMinutes,
-        location: CONFIG.venues.map(v=>v.name+", "+v.address).join("; "),
-        description: `Birthday date with multiple venues. See invite page for details.`
-      });
-      makeDownload(ics, 'birthday-date.ics');
-
       $('#btnYes').addEventListener('click', ()=>{
         $('#plan').classList.add('active');
         $('#inviteBtns').style.display='none';
@@ -251,11 +220,6 @@
         $('#intro').textContent = `It's okay! We'll find another day 💗`;
       });
 
-      $('#shareBtn').addEventListener('click', async ()=>{
-        const shareData = { title: 'Birthday Date Invite', text: `From ${CONFIG.yourName} to ${CONFIG.partnerName} 💌`, url: location.href };
-        try{ if(navigator.share){ await navigator.share(shareData); } else { await navigator.clipboard.writeText(location.href); alert('Link copied!'); } } catch(e){ console.log(e); }
-      });
-
       spawnHearts(25);
     }
 
@@ -263,4 +227,3 @@
   </script>
 </body>
 </html>
-
