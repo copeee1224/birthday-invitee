@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Birthday Date Invite 💌</title>
+  <meta name="description" content="A cute, clickable birthday invite with an RSVP button that reveals the date plan." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#fde7f3; --bg2:#fff8f0; --ink:#242424; --accent:#ff4d6d; --accent2:#7c4dff; --card:#ffffff; --muted:#6b7280;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink);
+      background: radial-gradient(1200px 600px at 80% -10%, #ffe3ec 10%, transparent 60%),
+                  radial-gradient(1000px 500px at -10% 0%, #e9e7ff 10%, transparent 60%),
+                  linear-gradient(160deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+    .hearts{position:fixed; inset:0; pointer-events:none; z-index:0;}
+    .heart{position:absolute; width:18px; height:18px; transform:translate(-50%,-50%) rotate(45deg); animation:float 10s linear infinite; opacity:.4}
+    .heart:before,.heart:after{content:""; position:absolute; width:100%; height:100%; background:var(--accent); border-radius:50%}
+    .heart:before{left:-50%}
+    .heart:after{top:-50%}
+    @keyframes float{0%{transform:translate(var(--x),110vh) rotate(45deg); opacity:0}10%{opacity:.4}100%{transform:translate(calc(var(--x) + var(--drift)), -10vh) rotate(45deg); opacity:.1}}
+
+    .wrap{min-height:100%; display:grid; place-items:center; padding:24px; position:relative; z-index:1}
+    .card{width:min(720px, 92vw); background:var(--card); border-radius:24px; box-shadow: 0 10px 30px rgba(0,0,0,.08);
+          padding: clamp(20px, 3.5vw, 36px);}
+    .pill{display:inline-block; padding:6px 12px; border-radius:999px; background:#fff0f4; color:var(--accent); font-weight:600; letter-spacing:.2px}
+    h1{margin:.2em 0 .3em; font-size:clamp(28px, 5vw, 40px); line-height:1.1}
+    p{line-height:1.6}
+    .muted{color:var(--muted)}
+    .btns{display:flex; flex-wrap:wrap; gap:12px; margin-top:18px}
+    button, .linkbtn{appearance:none; border:0; background:var(--accent); color:#fff; padding:12px 18px; border-radius:14px; font-weight:700; cursor:pointer; transition: transform .06s ease, box-shadow .2s ease; box-shadow:0 8px 18px rgba(255,77,109,.25)}
+    button:hover, .linkbtn:hover{transform:translateY(-1px)}
+    button:active, .linkbtn:active{transform:translateY(1px)}
+    .ghost{background:#f3f4f6; color:#111827; box-shadow:none}
+
+    .section{margin-top:22px; display:none}
+    .section.active{display:block}
+
+    .grid{display:grid; gap:14px; grid-template-columns: repeat( auto-fit, minmax(220px, 1fr) );}
+    .tile{padding:16px; border:1px dashed #f1d0da; border-radius:16px; background:#fff7fb}
+    .tile h3{margin:0 0 6px; font-size:16px}
+    .tile p{margin:0}
+
+    .venue-list{list-style:none; padding:0; margin:0}
+    .venue-list li{margin:8px 0; padding:8px; background:#fff; border-radius:10px; border:1px solid #fce0e8}
+    .venue-list strong{display:block; font-weight:600}
+    .venue-list a{display:inline-block; margin-top:4px; color:var(--accent); font-weight:600; text-decoration:none}
+
+    .timeline{margin-top:8px; padding-left:10px; border-left:3px solid #ffe1ea}
+    .step{position:relative; padding:10px 10px 10px 14px; margin:8px 0}
+    .step::before{content:""; position:absolute; left:-11px; top:14px; width:12px; height:12px; background:var(--accent); border:3px solid #fff; border-radius:50%; box-shadow:0 0 0 3px #ffe1ea}
+    .step time{display:block; font-weight:700}
+
+    .footer{margin-top:18px; font-size:14px}
+
+    #confetti{position:fixed; inset:0; pointer-events:none; z-index:2}
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div class="hearts" id="hearts"></div>
+
+  <main class="wrap">
+    <article class="card" aria-live="polite">
+      <span class="pill" id="pill">My Baby Birthday Invite</span>
+      <h1 id="headline">Hi, Awan Sayang! Birthday date?</h1>
+      <p id="intro" class="muted">Will you go on a birthday date with me? I made a little plan and I hope you'll say yes. 💖</p>
+
+      <div class="btns" id="inviteBtns">
+        <button id="btnYes">Yes! Let's go 🎉</button>
+        <button id="btnNo" class="ghost">I can't that day 😭</button>
+      </div>
+
+      <section id="plan" class="section" aria-hidden="true">
+        <div class="grid" style="margin-top:8px">
+          <div class="tile">
+            <h3>When is the date?</h3>
+            <p><span id="whenText"></span></p>
+          </div>
+          <div class="tile">
+            <h3>Where would we go?</h3>
+            <ul id="venueList" class="venue-list"></ul>
+          </div>
+          <div class="tile">
+            <h3>Dress code !</h3>
+            <p id="dressCode">Smart casual</p>
+          </div>
+          <div class="tile">
+            <h3>Note</h3>
+            <p id="note"></p>
+          </div>
+        </div>
+
+        <h2 style="margin:16px 0 6px">The plan</h2>
+        <div id="timeline" class="timeline"></div>
+
+        <div class="btns" style="margin-top:16px">
+          <a id="icsBtn" class="linkbtn" download>Add to Calendar (.ics)</a>
+          
+        </div>
+
+        <p class="footer muted" id="footerMsg"></p>
+      </section>
+
+      <section id="alt" class="section" aria-hidden="true">
+        <p>Totally okay! We can pick another day that works for you. Send me a time and I’ll make it special anyway. 💌</p>
+      </section>
+    </article>
+  </main>
+
+  <script>
+    const CONFIG = {
+      yourName: "Sofia comei",
+      partnerName: "Aqib Sayang",
+      eventTitle: "Birthday Date",
+      dateISO: "2025-09-11T19:00:00+08:00",
+      durationMinutes: 240,
+      venues: [
+        { name: "Zoo Negara", address: "Jalan Taman Zooview, Taman Zooview, 68000 Ampang, Selangor", link: "https://maps.google.com/?q=Zoo Negara" },
+        { name: "Gift Opening Time!!!", address: "In your car  ;) or anywhere you would prefer"},
+        { name: "Birthday Lunch", address: "Bbq town @ Setapak Central", link: "https://maps.app.goo.gl/7hzcTTLHGsFro8eq9" }
+        
+      ],
+      dressCode: "Smart casual ! u pakai apa pun hensem ;)",
+      note: "I'll make sure you will enjoy them and remember to bring your smile 💖",
+      plan: [
+        { time: "8:30 AM", title: "Meet & Hugs", desc: "At The MRT Station." },
+        { time: "9:30 AM", title: "Walk", desc: "Buy the tickets and stroll around Zoo negara and take cute pics. <3" },
+        { time: "11:30 AM", title: "Lunch", desc: "We are gonna fill our tummies with lots  and lots of meat!" },
+        { time: "3:30 PM", title: "Dessert Time!!!", desc: "Any cafe you would like(Secret Recipe ;))." }
+      ]
+    };
+
+    const $ = sel => document.querySelector(sel);
+    const fmtDateLong = (d)=> d.toLocaleString(undefined, {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    const fmtTime = (d)=> d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+
+    function toUTCString(dt){
+      const d = new Date(dt);
+      const pad = n=> String(n).padStart(2,'0');
+      return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
+    }
+
+    function buildICS({title,startISO,durationMin,location,description}){
+      const dtStartUTC = toUTCString(startISO);
+      const end = new Date(new Date(startISO).getTime() + durationMin*60000);
+      const dtEndUTC = toUTCString(end.toISOString());
+      const uid = `${Date.now()}@birthday.invite`;
+      return `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Cute Invite//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\nBEGIN:VEVENT\nUID:${uid}\nSUMMARY:${title}\nDTSTAMP:${dtStartUTC}\nDTSTART:${dtStartUTC}\nDTEND:${dtEndUTC}\nLOCATION:${location}\nDESCRIPTION:${description}\nEND:VEVENT\nEND:VCALENDAR`;
+    }
+
+    function makeDownload(data, filename){
+      const blob = new Blob([data], {type:'text/calendar'});
+      const url = URL.createObjectURL(blob);
+      const a = $('#icsBtn');
+      a.href = url; a.download = filename;
+    }
+
+    function spawnHearts(count=20){
+      const container = document.getElementById("hearts");
+      const colors = ["#ff4d6d","#ff80ab","#f06292","#f50057","#e91e63"];
+      for(let i=0;i<count;i++){
+        const h = document.createElement("div");
+        h.className="heart";
+        h.style.setProperty("--x", `${Math.random()*100}vw`);
+        h.style.setProperty("--drift", `${(Math.random()-.5)*40}px`);
+        h.style.background = colors[Math.floor(Math.random()*colors.length)];
+        h.style.animationDuration = `${6+Math.random()*6}s`;
+        h.style.animationDelay = `${Math.random()*5}s`;
+        container.appendChild(h);
+      }
+    }
+
+    function burstConfettiOnce() {
+      const canvas = document.getElementById("confetti");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let pieces = Array.from({length:120}, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height,
+        w: 6, h: 12,
+        color: `hsl(${Math.random()*360},100%,60%)`,
+        speed: 3 + Math.random() * 3,
+        rotation: Math.random() * 360
+      }));
+
+      let frame;
+      function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.y += p.speed;
+          p.rotation += 5;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation * Math.PI/180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          ctx.restore();
+        });
+        frame = requestAnimationFrame(update);
+      }
+
+      update();
+      setTimeout(() => {
+        cancelAnimationFrame(frame);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }, 3000);
+    }
+
+    function init(){
+      const start = new Date(CONFIG.dateISO);
+      $('#whenText').textContent = `${fmtDateLong(start)} at ${fmtTime(start)}`;
+      $('#dressCode').textContent = CONFIG.dressCode;
+      $('#note').textContent = CONFIG.note;
+      $('#footerMsg').textContent = `Can't wait! – ${CONFIG.yourName}`;
+
+      const list = $('#venueList');
+      list.innerHTML = CONFIG.venues.map(v => `<li><strong>${v.name}</strong><span>${v.address}</span><br><a href="${v.link}" target="_blank">Open Maps</a></li>`).join('');
+
+      const tl = $('#timeline');
+      tl.innerHTML = CONFIG.plan.map(s=>`<div class="step"><time>${s.time}</time><strong>${s.title}</strong><div class="muted">${s.desc}</div></div>`).join('');
+
+      const ics = buildICS({
+        title: `${CONFIG.eventTitle} with ${CONFIG.yourName}`,
+        startISO: CONFIG.dateISO,
+        durationMin: CONFIG.durationMinutes,
+        location: CONFIG.venues.map(v=>v.name+", "+v.address).join("; "),
+        description: `Birthday date with multiple venues. See invite page for details.`
+      });
+      makeDownload(ics, 'birthday-date.ics');
+
+      $('#btnYes').addEventListener('click', ()=>{
+        $('#plan').classList.add('active');
+        $('#inviteBtns').style.display='none';
+        $('#intro').textContent = `Yay! Here's our plan 🎀`;
+        burstConfettiOnce();
+      });
+
+      $('#btnNo').addEventListener('click', ()=>{
+        $('#alt').classList.add('active');
+        $('#inviteBtns').style.display='none';
+        $('#intro').textContent = `It's okay! We'll find another day 💗`;
+      });
+
+      $('#shareBtn').addEventListener('click', async ()=>{
+        const shareData = { title: 'Birthday Date Invite', text: `From ${CONFIG.yourName} to ${CONFIG.partnerName} 💌`, url: location.href };
+        try{ if(navigator.share){ await navigator.share(shareData); } else { await navigator.clipboard.writeText(location.href); alert('Link copied!'); } } catch(e){ console.log(e); }
+      });
+
+      spawnHearts(25);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
+
